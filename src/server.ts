@@ -3,6 +3,8 @@ import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import { AppDataSource } from './database/data-source';
 import authRouter from './routes/authroutes';
+import userRouter from './routes/user.routes';
+import { middlewareTratamentoErros } from './middlewares/error.middleware';
 
 dotenv.config();
 
@@ -10,12 +12,15 @@ const app = express();
 app.use(express.json());
 
 app.use('/auth', authRouter);
-
-const PORT = process.env.PORT || 3000;
+app.use('/users', userRouter);
 
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: "MedClinic API - Servidor rodando com sucesso!" });
 });
+
+app.use(middlewareTratamentoErros); 
+
+const PORT = process.env.PORT || 3000;
 
 AppDataSource.initialize()
   .then(() => {
