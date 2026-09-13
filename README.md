@@ -39,7 +39,7 @@ Certifique-se de possuir o **Node.js (v18+)** e o **PostgreSQL** instalados loca
 
 ### 1. Clonar o Repositório
 ```bash
-git clone https://github.com
+git clone https://github.com/AndersonPCustodio/medclinic-api.git
 cd medclinic-api
 ```
 
