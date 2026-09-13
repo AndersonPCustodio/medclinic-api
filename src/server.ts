@@ -2,11 +2,14 @@ import 'reflect-metadata';
 import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import { AppDataSource } from './database/data-source';
+import authRouter from './routes/authroutes';
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+
+app.use('/auth', authRouter);
 
 const PORT = process.env.PORT || 3000;
 

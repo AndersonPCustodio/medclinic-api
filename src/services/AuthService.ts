@@ -7,27 +7,22 @@ export class AuthService {
   async registrarUsuario(dados: CriarUsuarioDTO): Promise<RespostaUsuarioDTO> {
     const { nome, email, senhaPura, role } = dados;
 
-    // Validação estrita de campos obrigatórios (RF05)
     if (!nome || !email || !senhaPura) {
       throw new Error('CAMPO_OBRIGATORIO_AUSENTE');
     }
 
-    // Validação básica do formato de e-mail (RF05)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       throw new Error('EMAIL_FORMATO_INVALIDO');
     }
 
-    // Impede e-mails duplicados no banco de dados (RF05 / RF11)
     const usuarioExistente = await UserRepository.buscarPorEmail(email);
     if (usuarioExistente) {
       throw new Error('EMAIL_DUPLICADO');
     }
 
-    // Criptografa a senha de forma segura antes de persistir (RF06)
     const senhaCriptografada = await gerarHashSenha(senhaPura);
 
-    // Instancia e salva a entidade no banco de dados
     const novoUsuario = new User();
     novoUsuario.nome = nome;
     novoUsuario.email = email;
@@ -36,7 +31,6 @@ export class AuthService {
 
     const usuarioSalvo = await UserRepository.save(novoUsuario);
 
-    // Retorna os dados mapeados através do DTO de saída, sem expor a senha
     return {
       id: usuarioSalvo.id,
       nome: usuarioSalvo.nome,
@@ -45,4 +39,28 @@ export class AuthService {
       dataCriacao: usuarioSalvo.dataCriacao,
     };
   }
+
+    async loginUsuario(email: string, senhaPura: string): Promise<{ token: string }> {
+    if (!email || !senhaPura) {
+      throw new Error('CREDENCIAIS_INVALIDAS');
+    }
+
+    const usuario = await UserRepository.buscarPorEmail(email);
+    if (!usuario) {
+      throw new Error('CREDENCIAIS_INVALIDAS');
+    }
+
+    const senhaValida = await import('../utils/password').then(m => m.compararSenha(senhaPura, usuario.senha));
+    if (!senhaValida) {
+      throw new Error('CREDENCIAIS_INVALIDAS');
+    }
+
+    const token = await import('../utils/jwt').then(m => m.gerarTokenJWT({
+      id: usuario.id,
+      role: usuario.role
+    }));
+
+    return { token };
+  }
+
 }
